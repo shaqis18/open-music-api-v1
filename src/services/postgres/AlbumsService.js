@@ -9,6 +9,7 @@ class AlbumsService {
   constructor() {
     this._pool = new Pool();
   }
+
   // add album function
   async addAlbum({ name, year }) {
     const id = `album-${nanoid(16)}`;
@@ -31,19 +32,28 @@ class AlbumsService {
     const result = await this._pool.query(query);
     return result.rows;
   }
-  
+
   // get album by id fungction
   async getAlbumById(id) {
     const albumquery = {
       text: 'SELECT * FROM albums WHERE id = $1',
       values: [id],
     };
+    const songquery = {
+      text: 'SELECT song.id, song.title, song.performer FROM songs INNER JOIN albums ON albums.id = songs."albumId" WHERE albums.id = $1',
+      values: [id],
+    };
     const albumresult = await this._pool.query(albumquery);
+    const songresult = await this._pool.query(songquery);
     if (!albumresult.rows.length) {
       throw new NotFoundError('Album tidak ditemukan');
     }
-    return albumsdb(albumresult.rows[0]);
+    return {
+      ...albumsdb(albumresult.rows[0]),
+      songs: songresult.rows,
+    };
   }
+
   // edit album by id function
   async editAlbumById(AlbumId, { name, year }) {
     const query = {
@@ -55,6 +65,7 @@ class AlbumsService {
       throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
     }
   }
+
   // delete album by id function
   async deleteAlbumById(id) {
     const query = {
