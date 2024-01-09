@@ -39,19 +39,11 @@ class AlbumsService {
       text: 'SELECT * FROM albums WHERE id = $1',
       values: [id],
     };
-    const songquery = {
-      text: 'SELECT song.id, song.title, song.performer FROM songs INNER JOIN albums ON albums.id = songs."albumId" WHERE albums.id = $1',
-      values: [id],
-    };
     const albumresult = await this._pool.query(albumquery);
-    const songresult = await this._pool.query(songquery);
     if (!albumresult.rows.length) {
       throw new NotFoundError('Album tidak ditemukan');
     }
-    return {
-      ...albumsdb(albumresult.rows[0]),
-      songs: songresult.rows,
-    };
+    return albumsdb(albumresult.rows[0]);
   }
 
   // edit album by id function
